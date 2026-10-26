@@ -106,7 +106,7 @@ debug "Finding installed plugins..."
 # @param1 plugin name without zathura- prefix
 find_plugin() {
   plugin_prefix=$(brew --prefix "zathura-$1" 2>/dev/null)
-  plugin_path="${plugin_prefix}/lib$1.dylib"
+  plugin_path="${plugin_prefix}/lib/zathura/lib$1.dylib"
 
   if [[ -f ${plugin_path} ]]
   then

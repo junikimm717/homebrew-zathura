@@ -53,14 +53,9 @@ render PDFs.
 brew install [zathura-cb] [zathura-djvu] [zathura-pdf-mupdf] [zathura-pdf-poppler] [zathura-ps]
 ```
 
-After you install all required plugins you need to put them in
-a directory where zathura can find them. To do this, run the
-following command. You have to run this command only after
-installing new plugins.
-
-```sh
-d=$(brew --prefix zathura)/lib/zathura ; mkdir -p $d ; for n in cb djvu pdf-mupdf pdf-poppler ps ; do p=$(brew --prefix zathura-$n)/lib$n.dylib ; [[ -f $p ]] && ln -s $p $d ; done
-```
+Plugins install into `$(brew --prefix)/lib/zathura`, which is where
+zathura looks for them, so no manual linking is needed and they keep
+working across upgrades.
 
 ### App bundle
 

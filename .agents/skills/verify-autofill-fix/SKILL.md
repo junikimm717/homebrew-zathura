@@ -20,7 +20,7 @@ defaults delete zathura NSAutoFillHeuristicsEnabled 2>/dev/null
 
 ## Test procedure
 
-Use any PDF (`$PDF`). For a dev build, use `BIN=~/path/to/build/zathura` and pass
+Use any PDF (`$PDF`). For a dev build, set `BIN` to the absolute path of `build/zathura` and pass
 `-p $(brew --prefix)/lib/zathura`.
 
 ```sh
@@ -30,8 +30,9 @@ pid=$(pgrep -nf "$BIN --fork")
 osascript -e "tell application \"System Events\" to set frontmost of (first process whose unix id is $pid) to true"
 sleep 8
 ps -o %cpu= -p $pid                 # fixed: ~0; broken: ~145
-sample $pid 2 -file /tmp/z.txt >/dev/null 2>&1
-grep -cE 'SPCompletionList|SPSafariPlatformSupport' /tmp/z.txt   # fixed: 0
+OUT=$(mktemp)
+sample $pid 2 -file "$OUT" >/dev/null 2>&1
+grep -cE 'SPCompletionList|SPSafariPlatformSupport' "$OUT"   # fixed: 0
 kill $pid
 ```
 

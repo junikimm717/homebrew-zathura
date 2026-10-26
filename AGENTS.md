@@ -28,7 +28,7 @@ Keep both working whenever you touch this repo.
 **Plugin directory contract.**
 - `zathura.rb` rewrites `join_paths(prefix, plugindir)` in `meson.build` to
   `'#{HOMEBREW_PREFIX}/lib/zathura'`. That makes the compiled-in `ZATHURA_PLUGINDIR`
-  `/opt/homebrew/lib/zathura`, not the versioned keg.
+  `$(brew --prefix)/lib/zathura`, not the versioned keg.
 - Every plugin formula rewrites `zathura.get_variable(pkgconfig: 'plugindir')` to
   `'#{lib}/zathura'`, so its dylib lands in `<keg>/lib/zathura/` and `brew link` exposes
   it at `$(brew --prefix)/lib/zathura/`.
@@ -67,9 +67,8 @@ produces tens of thousands of lines per second.
 ## Working on formulae
 
 ```sh
-# Edit here (the GitHub fork clone), not in the Homebrew-managed copy:
-cd ~/Documents/repos/homebrew-zathura
-# After pushing to origin/master:
+# Edit in a git clone of this fork, not in the Homebrew-managed copy at
+# $(brew --repo junikimm717/zathura). After pushing to origin/master:
 brew update && brew reinstall junikimm717/zathura/zathura
 ```
 
@@ -81,7 +80,7 @@ brew update && brew reinstall junikimm717/zathura/zathura
 - Uninstalling zathura makes brew autoremove its build deps (meson, ninja, sphinx-doc).
   They come back automatically on the next build.
 - To check the install, run `zathura --version`. It should list each plugin with a path
-  under `/opt/homebrew/lib/zathura/`.
+  under `$(brew --prefix)/lib/zathura/`.
 
 ## Environment gotchas (macOS, zsh)
 

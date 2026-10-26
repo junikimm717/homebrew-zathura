@@ -5,8 +5,9 @@ description: Sync this fork with upstream homebrew-zathura, bump zathura/girara/
 
 # Updating zathura in this fork
 
-Work in `~/Documents/repos/homebrew-zathura` (remotes: `origin` = junikimm717 fork,
-`upstream` = homebrew-zathura). Read `AGENTS.md` first for the invariants.
+Work in a git clone of this fork with remotes `origin` (the junikimm717 fork) and
+`upstream` (homebrew-zathura). Add the second one with
+`git remote add upstream https://github.com/homebrew-zathura/homebrew-zathura` if needed. Read `AGENTS.md` first for the invariants.
 
 ## 1. Pull upstream
 
@@ -35,10 +36,12 @@ cd sync && uv run main.py
 
 ```sh
 V=<new zathura tag>
-rm -rf /tmp/zcheck && git clone -q --depth 1 -b $V https://github.com/pwmt/zathura /tmp/zcheck
-cd /tmp/zcheck
-patch -p1 < ~/Documents/repos/homebrew-zathura/patches/mac-integration.diff
-patch -p1 --dry-run < ~/Documents/repos/homebrew-zathura/patches/autofill-heuristics.diff
+TAP=$(git rev-parse --show-toplevel)   # run from inside this repo
+SRC=$(mktemp -d)
+git clone -q --depth 1 -b $V https://github.com/pwmt/zathura "$SRC"
+cd "$SRC"
+patch -p1 < "$TAP/patches/mac-integration.diff"
+patch -p1 --dry-run < "$TAP/patches/autofill-heuristics.diff"
 ```
 
 If it fails, regenerate it against the new source:
@@ -52,7 +55,7 @@ If it fails, regenerate it against the new source:
    and `dependency('appleframeworks', modules: ['Foundation'])`. Also add
    `sources += files('zathura/macos.m')` under a darwin guard, after
    `sources += zathura_resources`.
-5. `git add -A && git diff --cached > ~/Documents/repos/homebrew-zathura/patches/autofill-heuristics.diff`
+5. `git add -A && git diff --cached > "$TAP/patches/autofill-heuristics.diff"`
 6. `meson setup build && ninja -C build` must succeed.
 7. Also dry-run `no-titlebar.diff` on top, so the optional build still works.
 
@@ -61,9 +64,9 @@ Then update the patch's `sha256` in `Formula/zathura.rb`.
 ## 4. Install and verify
 
 ```sh
-git commit -am "Bump zathura to $V" && git push origin master
+cd "$TAP" && git commit -am "Bump zathura to $V" && git push origin master
 brew update && brew upgrade junikimm717/zathura/zathura junikimm717/zathura/zathura-pdf-poppler
-zathura --version   # plugins must be listed under /opt/homebrew/lib/zathura/
+zathura --version   # plugins must be listed under $(brew --prefix)/lib/zathura/
 ```
 
 Then run the `verify-autofill-fix` skill. Don't call the update done until it shows

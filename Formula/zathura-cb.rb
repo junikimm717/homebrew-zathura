@@ -18,24 +18,12 @@ class ZathuraCb < Formula
   depends_on "zathura"
 
   def install
-    inreplace "meson.build", "zathura.get_variable(pkgconfig: 'plugindir')", "'#{prefix}'"
+    inreplace "meson.build", "zathura.get_variable(pkgconfig: 'plugindir')", "'#{lib}/zathura'"
     mkdir "build" do
       system "meson", *std_meson_args, ".."
       system "ninja"
       system "ninja", "install"
     end
-  end
-
-  def caveats
-    <<-EOS
-      To enable this plugin you will need to link it in place.
-      First create the plugin directory if it does not exist yet:
-        $ mkdir -p $(brew --prefix zathura)/lib/zathura
-      Then link the .dylib to the directory:
-        $ ln -s $(brew --prefix zathura-cb)/libcb.dylib $(brew --prefix zathura)/lib/zathura/libcb.dylib
-
-      More information as to why this is needed: https://github.com/zegervdv/homebrew-zathura/issues/19
-    EOS
   end
 
   test do

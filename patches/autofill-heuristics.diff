@@ -1,0 +1,91 @@
+diff --git a/meson.build b/meson.build
+index b6dd2862..6d4289a2 100644
+--- a/meson.build
++++ b/meson.build
+@@ -57,8 +57,10 @@ sqlite = dependency('sqlite3', version: '>=3.6.23')
+ build_dependencies = [libm, girara, glib, gio, gthread, gmodule, gtk3, cairo, magic, json_glib]
+ 
+ if host_machine.system() == 'darwin'
++  add_languages('objc', native: false)
+   gtk_mac_integration = dependency('gtk-mac-integration-gtk3')
+-  build_dependencies += gtk_mac_integration
++  foundation = dependency('appleframeworks', modules: ['Foundation'])
++  build_dependencies += [gtk_mac_integration, foundation]
+ endif
+ 
+ # required functions
+@@ -149,6 +151,10 @@ sources = files(
+ )
+ sources += zathura_resources
+ 
++if host_machine.system() == 'darwin'
++  sources += files('zathura/macos.m')
++endif
++
+ # header files to install
+ headers = files(
+   'zathura/document.h',
+diff --git a/zathura/macos.h b/zathura/macos.h
+new file mode 100644
+index 00000000..e734e741
+--- /dev/null
++++ b/zathura/macos.h
+@@ -0,0 +1,11 @@
++/* SPDX-License-Identifier: Zlib */
++
++#ifndef ZATHURA_MACOS_H
++#define ZATHURA_MACOS_H
++
++/**
++ * Apply macOS-specific workarounds. Must be called before gtk_init.
++ */
++void zathura_macos_init(void);
++
++#endif // ZATHURA_MACOS_H
+diff --git a/zathura/macos.m b/zathura/macos.m
+new file mode 100644
+index 00000000..ebc60609
+--- /dev/null
++++ b/zathura/macos.m
+@@ -0,0 +1,15 @@
++/* SPDX-License-Identifier: Zlib */
++
++#import <Foundation/Foundation.h>
++
++#include "macos.h"
++
++void zathura_macos_init(void) {
++  @autoreleasepool {
++    /* On macOS 26, AppKit's AutoFill heuristics repeatedly request the
++     * SafariPlatformSupport completion list view service for GDK's text input
++     * view. Loading it fails (NSXPCSharedListenerErrorDomain Code=2) and it is
++     * re-requested immediately, pinning the main thread and WindowServer. */
++    [[NSUserDefaults standardUserDefaults] registerDefaults:@{@"NSAutoFillHeuristicsEnabled" : @NO}];
++  }
++}
+diff --git a/zathura/main.c b/zathura/main.c
+index 73772722..301c0ef5 100644
+--- a/zathura/main.c
++++ b/zathura/main.c
+@@ -4,6 +4,10 @@
+ #include "mac-integration.h"
+ #endif
+ 
++#ifdef __APPLE__
++#include "macos.h"
++#endif
++
+ #include <girara-gtk/settings.h>
+ #include <girara/log.h>
+ 
+@@ -258,6 +262,10 @@ GIRARA_VISIBLE int main(int argc, char* argv[]) {
+     return 0;
+   }
+ 
++#ifdef __APPLE__
++  zathura_macos_init();
++#endif
++
+   /* Initialize GTK+ */
+   gtk_init(&argc, &argv);
+ 

@@ -35,6 +35,12 @@ class Zathura < Formula
     sha256 "8c8b1546d18418c1c43579365bd810a022b30c655edc60364d1867ee4b3ba00f"
   end
 
+  # Stop the macOS 26 AutoFill completion list from respawning in a loop
+  patch do
+    url "file://#{__dir__}/../patches/autofill-heuristics.diff"
+    sha256 "edccbf2a92e7de02006d0a3dcbde31bb2086e8aede195d5a9a0592cd0231b301"
+  end
+
   on_macos do
     option "with-no-titlebar", "Remove the title bar on macOS"
 
@@ -54,6 +60,10 @@ class Zathura < Formula
     # Add the pkgconfig for girara to the PKG_CONFIG_PATH
     # TODO: Find out why it is not added correctly for Linux
     ENV["PKG_CONFIG_PATH"] = "#{ENV["PKG_CONFIG_PATH"]}:#{Formula["girara"].prefix}/lib/x86_64-linux-gnu/pkgconfig"
+
+    # Look for plugins in HOMEBREW_PREFIX/lib/zathura, where plugin formulae are
+    # linked, so they keep working across upgrades
+    inreplace "meson.build", "join_paths(prefix, plugindir)", "'#{HOMEBREW_PREFIX}/lib/zathura'"
 
     mkdir "build" do
       system "meson", *std_meson_args, ".."
